@@ -3,21 +3,19 @@ FROM golang:1.21-alpine AS builder
 
 WORKDIR /app
 
-# Download dependencies first (cached layer)
-COPY go.mod go.sum ./
-RUN go mod download
-
-# Copy source and build
+# Copy everything first so go mod tidy can resolve all transitive dependencies
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o seriestracker ./main.go
+
+# Tidy generates go.sum, downloads deps, then builds a static binary
+RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -o seriestracker ./main.go
 
 # ── Stage 2: Run ──────────────────────────────────────────────────────────────
-# Use a minimal image — no Go toolchain needed at runtime
+# Minimal final image — no Go toolchain, ~15MB total
 FROM alpine:3.19
 
 WORKDIR /app
 
-# Add CA certs (needed for HTTPS calls to Cloudinary)
+# CA certs needed for HTTPS calls to Cloudinary
 RUN apk --no-cache add ca-certificates
 
 COPY --from=builder /app/seriestracker .

@@ -1,0 +1,21 @@
+# Git
+.git
+.gitignore
+
+# Environment — never copy secrets into the image
+.env
+.env.*
+!.env.example
+
+# Docs
+README.md
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Compiled binary (built inside Docker)
+seriestracker
+*.exe
+go.sum
