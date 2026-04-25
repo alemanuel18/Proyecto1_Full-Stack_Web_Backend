@@ -1,1 +1,14 @@
+# Binaries
+/seriestracker
+*.exe
+
+# Environment — NEVER commit this
 .env
+
+# Go build cache
+/vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
