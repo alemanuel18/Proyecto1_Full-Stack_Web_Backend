@@ -2,7 +2,7 @@
 
 API REST construida en Go con PostgreSQL como base de datos y Cloudinary para el almacenamiento de imágenes. Expone endpoints para autenticación de usuarios y gestión de series.
 
-**Frontend repo:** _[agregar link aquí]_
+**Frontend repo:** https://github.com/alemanuel18/-Proyecto1_Full-Stack_Web_Frontend.git
 
 ---
 
