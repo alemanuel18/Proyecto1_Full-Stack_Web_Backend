@@ -168,14 +168,42 @@ El servidor lo maneja mediante un middleware en Go que se aplica a todas las rut
 ## Reflexión
 
 _[¿Usarías Go de nuevo?]_
-Si, mas que nada a que es un lenguaje liviano, entonces al estar en un servidor compartido con la clase, ayuda a que el app no se caiga con tanta facilidad.
+- Si, mas que nada a que es un lenguaje liviano, entonces al estar en un servidor compartido con la clase, ayuda a que el app no se caiga con tanta facilidad.
 _[¿Qué aprendiste sobre separar cliente y servidor?]_ 
-No mucho, ya que fue una practica me enseñaron desde primer año de la carrera, desde entonces siempre e separado el Frontend el Backend, pero cuando me lo enseñaron e de admitir que se sintio bastatne comodo el poder tener los mundos separados para evitas problemas.
+- No mucho, ya que fue una practica me enseñaron desde primer año de la carrera, desde entonces siempre e separado el Frontend el Backend, pero cuando me lo enseñaron e de admitir que se sintio bastatne comodo el poder tener los mundos separados para evitas problemas.
 _[¿Qué harías diferente?]_
-Va mas que nada para el Front, utilizar alguna libreria, que utilizar js, html y css vanilla, si es una experiencia pero me resulto mas dificil el manejo de componentes en vanilla que en con una libreria como react.
+- Va mas que nada para el Front, utilizar alguna libreria, que utilizar js, html y css vanilla, si es una experiencia pero me resulto mas dificil el manejo de componentes en vanilla que en con una libreria como react.
 
 ---
 
 ## Screenshot
 
-_[Agregar screenshot de la app funcionando]_
+_[Login]_
+
+<img width="1920" height="1038" alt="Login" src="https://github.com/user-attachments/assets/2e82d150-a91f-46d9-8c82-a3c74dc98588" />
+
+_[Filtros]_
+
+<img width="1920" height="1038" alt="Filtro1" src="https://github.com/user-attachments/assets/8c2fa236-c5f6-4e4c-8027-fbf21d9dea3b" />
+
+<img width="1920" height="1038" alt="Filtro2" src="https://github.com/user-attachments/assets/b2cf98bb-2c95-462f-ae1b-9183c0e768c7" />
+
+<img width="1920" height="1038" alt="Filtro3" src="https://github.com/user-attachments/assets/e383a9bc-a614-4bdf-b9df-0086b584b4a9" />
+
+<img width="1920" height="1038" alt="Filtro4" src="https://github.com/user-attachments/assets/f7c33929-3944-4e29-b3fe-917ba5b07480" />
+
+_[Crear Serie]_
+
+<img width="1920" height="1038" alt="Crear1" src="https://github.com/user-attachments/assets/3e212252-a533-4bad-ab56-c38178b2f080" />
+
+<img width="1920" height="1038" alt="Crear2" src="https://github.com/user-attachments/assets/91c635b2-9cab-43a8-a673-d2e57706f477" />
+
+_[Eliminar Serie]_
+
+<img width="1920" height="1038" alt="Eliminar" src="https://github.com/user-attachments/assets/fa6c232e-00a1-494d-8961-300ce27bdbe6" />
+
+
+_[Detalle Serie]_
+
+<img width="1920" height="1038" alt="Detalle" src="https://github.com/user-attachments/assets/d807d3e4-8310-4552-b8cf-3facacfbc3dc" />
+
