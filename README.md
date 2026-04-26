@@ -147,15 +147,9 @@ Authorization: Bearer <token>
 
 ## CORS
 
-CORS es la política del navegador que bloquea peticiones `fetch()` entre orígenes distintos (puertos diferentes en localhost cuentan como orígenes distintos). El servidor configura los headers necesarios para permitir las peticiones del frontend.
+CORS es la política del navegador que bloquea peticiones `fetch()` entre orígenes distintos (puertos diferentes en localhost cuentan como orígenes distintos). 
 
-```
-Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization
-```
-
-En producción reemplazar `*` por el dominio real del frontend.
+El servidor lo maneja mediante un middleware en Go que se aplica a todas las rutas antes de que lleguen a los handlers. Durante el desarrollo se permitio cualquier origen con *. Ya en producción se restringio al dominio real del frontend.
 
 ---
 
@@ -173,7 +167,12 @@ En producción reemplazar `*` por el dominio real del frontend.
 
 ## Reflexión
 
-_[¿Usarías Go de nuevo? ¿Qué aprendiste sobre separar cliente y servidor? ¿Qué harías diferente?]_
+_[¿Usarías Go de nuevo?]_
+Si, mas que nada a que es un lenguaje liviano, entonces al estar en un servidor compartido con la clase, ayuda a que el app no se caiga con tanta facilidad.
+_[¿Qué aprendiste sobre separar cliente y servidor?]_ 
+No mucho, ya que fue una practica me enseñaron desde primer año de la carrera, desde entonces siempre e separado el Frontend el Backend, pero cuando me lo enseñaron e de admitir que se sintio bastatne comodo el poder tener los mundos separados para evitas problemas.
+_[¿Qué harías diferente?]_
+Va mas que nada para el Front, utilizar alguna libreria, que utilizar js, html y css vanilla, si es una experiencia pero me resulto mas dificil el manejo de componentes en vanilla que en con una libreria como react.
 
 ---
 
