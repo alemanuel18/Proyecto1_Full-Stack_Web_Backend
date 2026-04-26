@@ -22,44 +22,28 @@ func NewSeriesHandler(db *sql.DB) *SeriesHandler {
 }
 
 // GET /series
-// Supports: ?page=1&limit=10&q=breaking&sort=title&order=asc
 func (h *SeriesHandler) List(w http.ResponseWriter, r *http.Request) {
 	userID, _ := middleware.GetUserID(r)
 
-	// Pagination
 	page := queryInt(r, "page", 1)
 	limit := queryInt(r, "limit", 20)
-	if page < 1 {
-		page = 1
-	}
-	if limit < 1 || limit > 100 {
-		limit = 20
-	}
+	if page < 1 { page = 1 }
+	if limit < 1 || limit > 100 { limit = 20 }
 	offset := (page - 1) * limit
 
-	// Search
 	search := strings.TrimSpace(r.URL.Query().Get("q"))
 
-	// Sort
 	sortField := r.URL.Query().Get("sort")
 	sortOrder := strings.ToUpper(r.URL.Query().Get("order"))
 
 	allowedSorts := map[string]string{
-		"title":      "title",
-		"rating":     "rating",
-		"status":     "status",
-		"created_at": "created_at",
-		"updated_at": "updated_at",
+		"title": "title", "rating": "rating", "status": "status",
+		"created_at": "created_at", "updated_at": "updated_at",
 	}
 	col, ok := allowedSorts[sortField]
-	if !ok {
-		col = "created_at"
-	}
-	if sortOrder != "ASC" && sortOrder != "DESC" {
-		sortOrder = "DESC"
-	}
+	if !ok { col = "created_at" }
+	if sortOrder != "ASC" && sortOrder != "DESC" { sortOrder = "DESC" }
 
-	// Build query
 	args := []interface{}{userID}
 	where := "WHERE user_id = $1"
 
@@ -68,7 +52,13 @@ func (h *SeriesHandler) List(w http.ResponseWriter, r *http.Request) {
 		where += fmt.Sprintf(" AND title ILIKE $%d", len(args))
 	}
 
-	// Count total
+	// Status filter
+	statusFilter := r.URL.Query().Get("status")
+	if statusFilter != "" {
+		args = append(args, statusFilter)
+		where += fmt.Sprintf(" AND status = $%d", len(args))
+	}
+
 	var total int
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM series %s", where)
 	if err := h.DB.QueryRow(countQuery, args...).Scan(&total); err != nil {
@@ -76,13 +66,10 @@ func (h *SeriesHandler) List(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Fetch page
 	args = append(args, limit, offset)
 	dataQuery := fmt.Sprintf(
 		`SELECT id, user_id, title, genre, status, rating, cover_url, description, episodes, created_at, updated_at
-		 FROM series %s
-		 ORDER BY %s %s
-		 LIMIT $%d OFFSET $%d`,
+		 FROM series %s ORDER BY %s %s LIMIT $%d OFFSET $%d`,
 		where, col, sortOrder, len(args)-1, len(args),
 	)
 
@@ -108,13 +95,11 @@ func (h *SeriesHandler) List(w http.ResponseWriter, r *http.Request) {
 	}
 
 	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+	if totalPages == 0 { totalPages = 1 }
 
 	respondJSON(w, http.StatusOK, models.PaginatedSeries{
-		Data:       seriesList,
-		Total:      total,
-		Page:       page,
-		Limit:      limit,
-		TotalPages: totalPages,
+		Data: seriesList, Total: total,
+		Page: page, Limit: limit, TotalPages: totalPages,
 	})
 }
 
@@ -164,9 +149,7 @@ func (h *SeriesHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	status := req.Status
-	if status == "" {
-		status = "plan_to_watch"
-	}
+	if status == "" { status = "plan_to_watch" }
 	validStatuses := map[string]bool{
 		"watching": true, "completed": true,
 		"dropped": true, "plan_to_watch": true,
@@ -175,7 +158,6 @@ func (h *SeriesHandler) Create(w http.ResponseWriter, r *http.Request) {
 		respondError(w, http.StatusBadRequest, "status must be one of: watching, completed, dropped, plan_to_watch")
 		return
 	}
-
 	if req.Rating != nil && (*req.Rating < 1 || *req.Rating > 10) {
 		respondError(w, http.StatusBadRequest, "rating must be between 1 and 10")
 		return
@@ -208,7 +190,6 @@ func (h *SeriesHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check ownership
 	var exists bool
 	if err := h.DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM series WHERE id=$1 AND user_id=$2)`, id, userID).Scan(&exists); err != nil || !exists {
 		respondError(w, http.StatusNotFound, "series not found")
@@ -221,7 +202,6 @@ func (h *SeriesHandler) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate status if provided
 	if req.Status != nil {
 		validStatuses := map[string]bool{
 			"watching": true, "completed": true,
@@ -232,13 +212,11 @@ func (h *SeriesHandler) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 	if req.Rating != nil && (*req.Rating < 1 || *req.Rating > 10) {
 		respondError(w, http.StatusBadRequest, "rating must be between 1 and 10")
 		return
 	}
 
-	// Build dynamic SET clause
 	setClauses := []string{"updated_at = NOW()"}
 	args := []interface{}{}
 	argIdx := 1
@@ -256,24 +234,12 @@ func (h *SeriesHandler) Update(w http.ResponseWriter, r *http.Request) {
 		}
 		addField("title", *req.Title)
 	}
-	if req.Genre != nil {
-		addField("genre", *req.Genre)
-	}
-	if req.Status != nil {
-		addField("status", *req.Status)
-	}
-	if req.Rating != nil {
-		addField("rating", *req.Rating)
-	}
-	if req.CoverURL != nil {
-		addField("cover_url", *req.CoverURL)
-	}
-	if req.Description != nil {
-		addField("description", *req.Description)
-	}
-	if req.Episodes != nil {
-		addField("episodes", *req.Episodes)
-	}
+	if req.Genre       != nil { addField("genre",       *req.Genre) }
+	if req.Status      != nil { addField("status",      *req.Status) }
+	if req.Rating      != nil { addField("rating",      *req.Rating) }
+	if req.CoverURL    != nil { addField("cover_url",   *req.CoverURL) }
+	if req.Description != nil { addField("description", *req.Description) }
+	if req.Episodes    != nil { addField("episodes",    *req.Episodes) }
 
 	args = append(args, id, userID)
 	query := fmt.Sprintf(
@@ -304,10 +270,7 @@ func (h *SeriesHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := h.DB.Exec(
-		`DELETE FROM series WHERE id = $1 AND user_id = $2`,
-		id, userID,
-	)
+	result, err := h.DB.Exec(`DELETE FROM series WHERE id = $1 AND user_id = $2`, id, userID)
 	if err != nil {
 		respondError(w, http.StatusInternalServerError, "could not delete series")
 		return
@@ -319,25 +282,26 @@ func (h *SeriesHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent) // 204 — no body on delete
+	w.WriteHeader(http.StatusNoContent)
 }
 
-// ── helpers ──────────────────────────────────────────────────────────────────
+// ── helpers ───────────────────────────────────────────────────────────────────
 
 func queryInt(r *http.Request, key string, def int) int {
 	v := r.URL.Query().Get(key)
-	if v == "" {
-		return def
-	}
+	if v == "" { return def }
 	n, err := strconv.Atoi(v)
-	if err != nil {
-		return def
-	}
+	if err != nil { return def }
 	return n
 }
 
 func extractID(r *http.Request) (int, error) {
-	// Works with path like /series/42 — last segment
-	parts := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")
-	return strconv.Atoi(parts[len(parts)-1])
+	// Go 1.22: use PathValue for named route params like {id}
+	idStr := r.PathValue("id")
+	if idStr == "" {
+		// fallback: last path segment
+		parts := strings.Split(strings.TrimSuffix(r.URL.Path, "/"), "/")
+		idStr = parts[len(parts)-1]
+	}
+	return strconv.Atoi(idStr)
 }

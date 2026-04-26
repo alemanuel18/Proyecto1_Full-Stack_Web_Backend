@@ -11,30 +11,25 @@ import (
 func Register(db *sql.DB, jwtSecret, cloudCloud, cloudKey, cloudSecret string) http.Handler {
 	mux := http.NewServeMux()
 
-	authHandler := handlers.NewAuthHandler(db, jwtSecret)
+	authHandler   := handlers.NewAuthHandler(db, jwtSecret)
 	seriesHandler := handlers.NewSeriesHandler(db)
 	uploadHandler := handlers.NewUploadHandler(db, cloudCloud, cloudKey, cloudSecret)
 
-	authMiddleware := middleware.Auth(jwtSecret)
+	auth := middleware.Auth(jwtSecret)
 
-	// ── Public routes ─────────────────────────────────────────────────────────
+	// ── Public ────────────────────────────────────────────────────────────────
 	mux.HandleFunc("POST /auth/register", authHandler.Register)
-	mux.HandleFunc("POST /auth/login", authHandler.Login)
+	mux.HandleFunc("POST /auth/login",    authHandler.Login)
 
-	// ── Protected routes ──────────────────────────────────────────────────────
-	// Auth
-	mux.Handle("GET /auth/me", authMiddleware(http.HandlerFunc(authHandler.Me)))
+	// ── Protected ─────────────────────────────────────────────────────────────
+	mux.Handle("GET /auth/me", auth(http.HandlerFunc(authHandler.Me)))
 
-	// Series CRUD
-	mux.Handle("GET /series", authMiddleware(http.HandlerFunc(seriesHandler.List)))
-	mux.Handle("GET /series/{id}", authMiddleware(http.HandlerFunc(seriesHandler.Get)))
-	mux.Handle("POST /series", authMiddleware(http.HandlerFunc(seriesHandler.Create)))
-	mux.Handle("PUT /series/{id}", authMiddleware(http.HandlerFunc(seriesHandler.Update)))
-	mux.Handle("DELETE /series/{id}", authMiddleware(http.HandlerFunc(seriesHandler.Delete)))
+	mux.Handle("GET /series",          auth(http.HandlerFunc(seriesHandler.List)))
+	mux.Handle("POST /series",         auth(http.HandlerFunc(seriesHandler.Create)))
+	mux.Handle("GET /series/{id}",     auth(http.HandlerFunc(seriesHandler.Get)))
+	mux.Handle("PUT /series/{id}",     auth(http.HandlerFunc(seriesHandler.Update)))
+	mux.Handle("DELETE /series/{id}",  auth(http.HandlerFunc(seriesHandler.Delete)))
+	mux.Handle("POST /series/{id}/image", auth(http.HandlerFunc(uploadHandler.UploadCover)))
 
-	// Image upload
-	mux.Handle("POST /series/{id}/image", authMiddleware(http.HandlerFunc(uploadHandler.UploadCover)))
-
-	// Wrap everything in CORS middleware
 	return middleware.CORS(mux)
 }

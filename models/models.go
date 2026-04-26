@@ -15,12 +15,12 @@ type Series struct {
 	ID          int       `json:"id"`
 	UserID      int       `json:"user_id"`
 	Title       string    `json:"title"`
-	Genre       string    `json:"genre"`
+	Genre       *string   `json:"genre"`        // nullable
 	Status      string    `json:"status"`
-	Rating      *int      `json:"rating"`   // pointer so it can be null
-	CoverURL    string    `json:"cover_url"`
-	Description string    `json:"description"`
-	Episodes    *int      `json:"episodes"` // pointer so it can be null
+	Rating      *int      `json:"rating"`       // nullable
+	CoverURL    *string   `json:"cover_url"`    // nullable
+	Description *string   `json:"description"`  // nullable
+	Episodes    *int      `json:"episodes"`     // nullable
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
@@ -39,12 +39,12 @@ type LoginRequest struct {
 }
 
 type CreateSeriesRequest struct {
-	Title       string `json:"title"`
-	Genre       string `json:"genre"`
-	Status      string `json:"status"`
-	Rating      *int   `json:"rating"`
-	Description string `json:"description"`
-	Episodes    *int   `json:"episodes"`
+	Title       string  `json:"title"`
+	Genre       *string `json:"genre"`
+	Status      string  `json:"status"`
+	Rating      *int    `json:"rating"`
+	Description *string `json:"description"`
+	Episodes    *int    `json:"episodes"`
 }
 
 type UpdateSeriesRequest struct {
