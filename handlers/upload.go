@@ -86,7 +86,7 @@ func (h *UploadHandler) UploadCover(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update series cover_url
-	var updatedURL string
+	var updatedURL *string
 	err = h.DB.QueryRow(
 		`UPDATE series SET cover_url = $1, updated_at = NOW()
 		 WHERE id = $2 AND user_id = $3
@@ -100,7 +100,7 @@ func (h *UploadHandler) UploadCover(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondJSON(w, http.StatusOK, map[string]string{
-		"cover_url": updatedURL,
+		"cover_url": func() string { if updatedURL != nil { return *updatedURL }; return "" }(),
 		"message":   "image uploaded successfully",
 	})
 }
@@ -108,9 +108,15 @@ func (h *UploadHandler) UploadCover(w http.ResponseWriter, r *http.Request) {
 // uploadToCloudinary uploads raw bytes and returns the secure URL
 func (h *UploadHandler) uploadToCloudinary(fileBytes []byte, contentType, publicID string) (string, error) {
 	timestamp := strconv.FormatInt(time.Now().Unix(), 10)
+	folder    := "series_tracker"
 
-	// Build signature: SHA1("public_id=X&timestamp=Y" + secret)
-	sigPayload := fmt.Sprintf("public_id=%s&timestamp=%s%s", publicID, timestamp, h.CloudinarySecret)
+	// Cloudinary signature: all params (except file, api_key, signature, resource_type)
+	// joined as key=value in ALPHABETICAL order, then append the API secret.
+	// Our params: folder, public_id, timestamp → alphabetical order is correct.
+	sigPayload := fmt.Sprintf(
+		"folder=%s&public_id=%s&timestamp=%s%s",
+		folder, publicID, timestamp, h.CloudinarySecret,
+	)
 	sig := fmt.Sprintf("%x", sha1.Sum([]byte(sigPayload)))
 
 	// Build multipart body
@@ -127,13 +133,13 @@ func (h *UploadHandler) uploadToCloudinary(fileBytes []byte, contentType, public
 		return "", err
 	}
 
-	// Add fields
+	// Add fields — order doesn't matter for multipart, only for the signature string
 	fields := map[string]string{
 		"api_key":   h.CloudinaryKey,
 		"timestamp": timestamp,
 		"public_id": publicID,
 		"signature": sig,
-		"folder":    "series_tracker",
+		"folder":    folder,
 	}
 	for k, v := range fields {
 		_ = writer.WriteField(k, v)
